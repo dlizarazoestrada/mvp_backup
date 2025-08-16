@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Score - PoC</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mental Health Score</h1>
+            <p>Proof of Concept</p>
+        </header>
+        <main>
+            <div class="status-box">
+                <span>Status:</span>
+                <span id="status-indicator" class="disconnected"></span>
+                <span id="status-text">Disconnected</span>
+            </div>
+
+            <!-- Initial score display, also used for buffering -->
+            <div class="score-display" id="initial-score-container">
+                <div class="loader" id="score-loader" style="display: none;"></div>
+                <span id="score-value-placeholder">--</span>
+            </div>
+
+            <!-- Headset selection -->
+            <div id="headset-selection-container" style="display: none;">
+                <div class="headset-list-header">
+                    <h3>Select Your Headset</h3>
+                    <button id="refresh-headsets-btn" class="refresh-btn" title="Refresh list">⟳</button>
+                </div>
+                <ul id="headset-list"></ul>
+                <div id="headset-loader" class="small-loader" style="display: none;"></div>
+            </div>
+
+            <!-- Ready to record state -->
+            <div id="ready-container" style="display: none;">
+                 <h3>Device Connected & Ready</h3>
+                <p>Select the duration and start the recording.</p>
+                <div class="time-input-container">
+                    <div class="time-unit">
+                        <input type="number" id="minutes-input" class="time-input" min="0" max="59" value="5">
+                        <label for="minutes-input">minutes</label>
+                    </div>
+                    <div class="time-unit">
+                        <input type="number" id="seconds-input" class="time-input" min="0" max="59" value="0">
+                        <label for="seconds-input">seconds</label>
+                    </div>
+                </div>
+                <button id="start-recording-btn">Start Recording</button>
+            </div>
+
+            <!-- Active recording state -->
+            <div class="score-display" id="recording-container" style="display: none;">
+                 <div id="session-info">
+                    <span id="timer">Time Left: 05:00</span>
+                    <button id="restart-recording-btn">Restart</button>
+                </div>
+                <span id="score-value">--</span>
+            </div>
+
+             <!-- Results state -->
+             <div id="results-container" style="display: none;">
+                <h3>Recording Complete</h3>
+                <p>Your average score was:</p>
+                <div class="results-score-display">
+                    <span id="average-score-value">--</span>
+                </div>
+                <button id="new-recording-btn">Start New Recording</button>
+            </div>
+
+            <div class="controls">
+                <button id="connect-btn">
+                    <span class="btn-text">Connect to EPOC X</span>
+                    <span class="spinner" style="display: none;"></span>
+                </button>
+                <button id="disconnect-btn" disabled>Disconnect</button>
+            </div>
+            <div class="logs">
+                <p id="log-message">Welcome! Click "Connect" to start.</p>
+            </div>
+        </main>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+Flask
+Flask-Cors
+Flask-SocketIO
+python-engineio
+python-socketio
+numpy
+scipy
+mne
+python-dotenv
+eventlet
+dnspython
