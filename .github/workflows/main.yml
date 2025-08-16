@@ -1,0 +1,125 @@
+name: build-mac
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  mac-arm64:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: mvp
+          python-version: 3.11
+          auto-update-conda: true
+
+      - name: Create mac Python env and pack
+        shell: bash -l {0}
+        run: |
+          conda install -y conda-pack
+          pip install -r backend/requirements.txt
+          conda pack -n mvp -o mvp-env.tar.gz
+          mkdir -p desktop/resources/python-env
+          tar -xzf mvp-env.tar.gz -C desktop/resources/python-env
+          # Fix paths inside the packed environment for the new location
+          desktop/resources/python-env/bin/conda-unpack || true
+
+      - name: Prepare app resources
+        run: |
+          mkdir -p desktop/resources/app
+          cp -R backend desktop/resources/app/backend
+          cp -R frontend desktop/resources/app/frontend
+
+      - name: Write .env for packaged app (from GitHub Secrets/Vars)
+        run: |
+          : > desktop/.env
+          echo "USE_MOCK_SERVER=${{ vars.USE_MOCK_SERVER || 'false' }}" >> desktop/.env
+          echo "LOG_VERBOSE=${{ vars.LOG_VERBOSE || '2' }}" >> desktop/.env
+          echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> desktop/.env
+          echo "CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}" >> desktop/.env
+
+
+      - name: Install desktop deps
+        working-directory: desktop
+        run: npm ci || npm i
+
+      - name: Build mac artifact (arm64, unsigned)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          BUILD_BLOCKMAP: 'false'
+        working-directory: desktop
+        run: npx electron-builder --mac --arm64 --publish=never -c.compression=store
+
+      - name: Upload artifact (arm64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-build-arm64
+          path: desktop/dist/*
+
+  mac-x64:
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          activate-environment: mvp
+          python-version: 3.11
+          auto-update-conda: true
+
+      - name: Create mac Python env and pack (x64)
+        shell: bash -l {0}
+        run: |
+          conda install -y conda-pack
+          pip install -r backend/requirements.txt
+          conda pack -n mvp -o mvp-env.tar.gz
+          mkdir -p desktop/resources/python-env
+          tar -xzf mvp-env.tar.gz -C desktop/resources/python-env
+          desktop/resources/python-env/bin/conda-unpack || true
+
+      - name: Prepare app resources
+        run: |
+          mkdir -p desktop/resources/app
+          cp -R backend desktop/resources/app/backend
+          cp -R frontend desktop/resources/app/frontend
+
+      - name: Write .env for packaged app (from GitHub Secrets/Vars)
+        run: |
+          : > desktop/.env
+          echo "USE_MOCK_SERVER=${{ vars.USE_MOCK_SERVER || 'false' }}" >> desktop/.env
+          echo "LOG_VERBOSE=${{ vars.LOG_VERBOSE || '2' }}" >> desktop/.env
+          echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> desktop/.env
+          echo "CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}" >> desktop/.env
+
+      - name: Install desktop deps
+        working-directory: desktop
+        run: npm ci || npm i
+
+      - name: Build mac artifact (x64, unsigned)
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          BUILD_BLOCKMAP: 'false'
+        working-directory: desktop
+        run: npx electron-builder --mac dmg --x64 --publish=never -c.compression=store
+
+      - name: Upload artifact (x64)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mac-build-x64
+          path: desktop/dist/*
+
+
