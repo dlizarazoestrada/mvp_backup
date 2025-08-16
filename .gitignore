@@ -61,3 +61,5 @@ venv.bak/
 /db_resting_eeg/
 /cortex-example/
 .DS_Store
+
+frontend/node_modules/
