@@ -122,4 +122,3 @@ jobs:
           name: mac-build-x64
           path: desktop/dist/*
 
-
