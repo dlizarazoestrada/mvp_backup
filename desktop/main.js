@@ -77,16 +77,22 @@ async function startBackend() {
   const cfgContent = `# Auto-generated at runtime by Electron wrapper\nUSE_MOCK_SERVER = ${useMock ? 'True' : 'False'}\nUSER_CONFIG = {\n  "client_id": "${clientId}",\n  "client_secret": "${clientSecret}",\n  "cortex_url": "ws://localhost:6868" if USE_MOCK_SERVER else "wss://localhost:6868"\n}\n`;
   fs.writeFileSync(path.join(tmpConfDir, 'config.py'), cfgContent);
 
-  const childEnv = {
-    ...process.env,
-    OPEN_BROWSER: '0',
-    PORT: port,
-    CLIENT_ID: clientId,
-    CLIENT_SECRET: clientSecret,
-    USE_MOCK_SERVER: useMock ? '1' : '0',
-    LOG_VERBOSE: process.env.LOG_VERBOSE || '2',
-    PYTHONPATH: `${tmpConfDir}${path.delimiter}${process.env.PYTHONPATH || ''}`,
-  };
+     const childEnv = {
+     ...process.env,
+     OPEN_BROWSER: '0',
+     PORT: port,
+     CLIENT_ID: clientId,
+     CLIENT_SECRET: clientSecret,
+     USE_MOCK_SERVER: useMock ? '1' : '0',
+     LOG_VERBOSE: process.env.LOG_VERBOSE || '2',
+     PYTHONPATH: `${tmpConfDir}${path.delimiter}${process.env.PYTHONPATH || ''}`,
+     // Ensure proper library path for macOS
+     DYLD_LIBRARY_PATH: process.platform === 'darwin' 
+       ? path.join(getPythonEnvRoot(), 'lib') 
+       : process.env.DYLD_LIBRARY_PATH || '',
+     // Ensure numpy finds its libraries
+     PYTHONHOME: getPythonEnvRoot(),
+   };
 
   backend = spawn(python, [scriptPath], {
     cwd: runCwd,
