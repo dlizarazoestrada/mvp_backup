@@ -24,13 +24,17 @@ jobs:
       - name: Create mac Python env and pack
         shell: bash -l {0}
         run: |
-          conda install -y conda-pack
+          conda install -y conda-pack numpy
           pip install -r backend/requirements.txt
+          # Ensure numpy is properly installed in base environment
+          python -c "import numpy; print(numpy.__version__)"
           conda pack -n mvp -o mvp-env.tar.gz
           mkdir -p desktop/resources/python-env
           tar -xzf mvp-env.tar.gz -C desktop/resources/python-env
           # Fix paths inside the packed environment for the new location
           desktop/resources/python-env/bin/conda-unpack || true
+          # Verify numpy in packed environment
+          desktop/resources/python-env/bin/python -c "import numpy; print(numpy.__version__)"
 
       - name: Prepare app resources
         run: |
