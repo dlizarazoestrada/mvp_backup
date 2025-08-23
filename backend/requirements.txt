@@ -9,3 +9,5 @@ mne
 python-dotenv
 eventlet
 dnspython
+websocket-client
+websockets
