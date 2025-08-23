@@ -8,7 +8,7 @@ import math
 import random
 from backend.log_config import logger
 
-# These values were calculated offline by running analysis/calculate_baseline.py
+# These values were calculated offline by running analysis/calculate_baseline.py 
 # on the resting EEG dataset. They represent the average "calm" state for the population.
 POPULATION_BASELINE_ALPHA_BETA_RATIO = 12.4438
 POPULATION_STD_DEV_ALPHA_BETA_RATIO = 10.0113
