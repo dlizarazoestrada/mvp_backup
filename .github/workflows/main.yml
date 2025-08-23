@@ -24,13 +24,33 @@ jobs:
       - name: Create mac Python env and pack
         shell: bash -l {0}
         run: |
-          conda install -y conda-pack
+          # Install core scientific packages from conda-forge
+          conda install -c conda-forge numpy scipy openblas mkl -y
+          
+          # Install remaining requirements
           pip install -r backend/requirements.txt
+          
+          # Pack environment with all dependencies
+          conda install -y conda-pack
           conda pack -n mvp -o mvp-env.tar.gz
+          
+          # Extract and prepare environment
           mkdir -p desktop/resources/python-env
           tar -xzf mvp-env.tar.gz -C desktop/resources/python-env
-          # Fix paths inside the packed environment for the new location
-          desktop/resources/python-env/bin/conda-unpack || true
+          
+          # Fix permissions and paths
+          chmod +x desktop/resources/python-env/bin/*
+          cd desktop/resources/python-env
+          ./bin/conda-unpack
+          
+          # Verify numpy and its dependencies
+          ./bin/python -c "
+          import numpy as np
+          import os
+          print('NumPy version:', np.__version__)
+          print('NumPy location:', np.__file__)
+          print('OpenBLAS location:', [f for f in os.listdir('./lib') if 'openblas' in f.lower()])
+          "
 
       - name: Prepare app resources
         run: |
@@ -84,12 +104,33 @@ jobs:
       - name: Create mac Python env and pack (x64)
         shell: bash -l {0}
         run: |
-          conda install -y conda-pack
+          # Install core scientific packages from conda-forge
+          conda install -c conda-forge numpy scipy openblas mkl -y
+          
+          # Install remaining requirements
           pip install -r backend/requirements.txt
+          
+          # Pack environment with all dependencies
+          conda install -y conda-pack
           conda pack -n mvp -o mvp-env.tar.gz
+          
+          # Extract and prepare environment
           mkdir -p desktop/resources/python-env
           tar -xzf mvp-env.tar.gz -C desktop/resources/python-env
-          desktop/resources/python-env/bin/conda-unpack || true
+          
+          # Fix permissions and paths
+          chmod +x desktop/resources/python-env/bin/*
+          cd desktop/resources/python-env
+          ./bin/conda-unpack
+          
+          # Verify numpy and its dependencies
+          ./bin/python -c "
+          import numpy as np
+          import os
+          print('NumPy version:', np.__version__)
+          print('NumPy location:', np.__file__)
+          print('OpenBLAS location:', [f for f in os.listdir('./lib') if 'openblas' in f.lower()])
+          "
 
       - name: Prepare app resources
         run: |
