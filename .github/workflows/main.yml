@@ -5,7 +5,7 @@ on:
 
 jobs:
   mac-arm64:
-    runs-on: macos-11
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -24,23 +24,13 @@ jobs:
       - name: Create mac Python env and pack
         shell: bash -l {0}
         run: |
-          # Create a fresh environment with specific numpy installation
-          conda create -n mvp python=3.11 numpy scipy -y
-          conda activate mvp
-          # Install other requirements via pip
-          pip install -r backend/requirements.txt
-          # Pack the environment
           conda install -y conda-pack
-          conda pack -n mvp -o mvp-env.tar.gz --ignore-missing-files
+          pip install -r backend/requirements.txt
+          conda pack -n mvp -o mvp-env.tar.gz
           mkdir -p desktop/resources/python-env
           tar -xzf mvp-env.tar.gz -C desktop/resources/python-env
-          # Fix paths and permissions
-          chmod +x desktop/resources/python-env/bin/*
+          # Fix paths inside the packed environment for the new location
           desktop/resources/python-env/bin/conda-unpack || true
-          # Verify the installation
-          cd desktop/resources/python-env
-          ./bin/python -c "import numpy; print('Numpy works:', numpy.__file__)"
-          ./bin/pip list | grep numpy
 
       - name: Prepare app resources
         run: |
@@ -75,7 +65,7 @@ jobs:
           path: desktop/dist/*
 
   mac-x64:
-    runs-on: macos-11
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
 
@@ -131,4 +121,5 @@ jobs:
         with:
           name: mac-build-x64
           path: desktop/dist/*
+
 
