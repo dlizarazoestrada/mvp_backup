@@ -45,6 +45,11 @@ async function startBackend() {
   const python = getPythonExecutable();
   const appRoot = getAppRoot();
   const scriptPath = path.join(appRoot, 'backend', 'main.py');
+  
+  console.log('Starting backend with:');
+  console.log('Python executable:', python);
+  console.log('App root:', appRoot);
+  console.log('Script path:', scriptPath);
   const portPref = process.env.PORT || '5000';
   const getFreePort = async (start) => {
     try {
@@ -87,6 +92,8 @@ async function startBackend() {
        pythonLibPath,
        path.join(pythonLibPath, 'python3.11'),
        path.join(pythonLibPath, 'python3.11/lib-dynload'),
+       path.join(pythonLibPath, '.dylibs'),  // Add .dylibs directory
+       '/usr/lib',  // Add system libraries
        process.env.DYLD_LIBRARY_PATH
      ].filter(Boolean).join(path.delimiter),
      DYLD_FRAMEWORK_PATH: pythonLibPath,
@@ -111,11 +118,30 @@ async function startBackend() {
      ...macOSPaths
    };
 
+  console.log('Spawning backend process with CWD:', runCwd);
+  
   backend = spawn(python, [scriptPath], {
     cwd: runCwd,
     env: childEnv,
     stdio: 'inherit',
     windowsHide: true,
+  });
+
+  // Capture and log stdout and stderr
+  backend.stdout.on('data', (data) => {
+    console.log('Backend stdout:', data.toString());
+  });
+
+  backend.stderr.on('data', (data) => {
+    console.error('Backend stderr:', data.toString());
+  });
+
+  backend.on('error', (err) => {
+    console.error('Failed to start backend:', err);
+  });
+
+  backend.on('exit', (code, signal) => {
+    console.log('Backend process exited with code:', code, 'signal:', signal);
   });
   await waitOn({ resources: [`http://127.0.0.1:${port}`], timeout: 30000 });
   return port;
@@ -138,11 +164,15 @@ async function createWindow() {
 
   // Start the backend in the background and load the real URL when ready
   startBackend().then(port => {
+    console.log('Backend started successfully on port:', port);
     win.loadURL(`http://127.0.0.1:${port}`);
   }).catch(err => {
-    // Handle backend start failure (optional)
     console.error("Failed to start backend:", err);
-    // You could show an error message in the splash window here
+    // Show error in splash window
+    win.webContents.executeJavaScript(`
+      document.getElementById('status').innerHTML = 'Error: ${err.message || 'Failed to start backend'}';
+      document.getElementById('status').style.color = 'red';
+    `);
   });
 }
 
