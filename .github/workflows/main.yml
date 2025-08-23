@@ -25,9 +25,11 @@ jobs:
         shell: bash -l {0}
         run: |
           # Install core scientific packages and system libraries from conda-forge
-          conda install -c conda-forge "libblas=*=*openblas" "liblapack=*=*openblas" numpy scipy xz liblzma openblas veclib -y
-          # Ensure all dependencies are included
-          conda install -c conda-forge --only-deps numpy scipy -y
+          conda install -c conda-forge "libblas=*=*openblas" "liblapack=*=*openblas" numpy scipy xz liblzma openblas -y
+          # Install numpy with specific BLAS/LAPACK configuration
+          conda install -c conda-forge numpy scipy --no-deps -y
+          # Ensure all dependencies are properly linked
+          conda list | grep -E "numpy|scipy|openblas|blas|lapack"
           
           # Install remaining requirements
           pip install -r backend/requirements.txt
@@ -107,9 +109,11 @@ jobs:
         shell: bash -l {0}
         run: |
           # Install core scientific packages and system libraries from conda-forge
-          conda install -c conda-forge "libblas=*=*openblas" "liblapack=*=*openblas" numpy scipy xz liblzma openblas veclib -y
-          # Ensure all dependencies are included
-          conda install -c conda-forge --only-deps numpy scipy -y
+          conda install -c conda-forge "libblas=*=*openblas" "liblapack=*=*openblas" numpy scipy xz liblzma openblas -y
+          # Install numpy with specific BLAS/LAPACK configuration
+          conda install -c conda-forge numpy scipy --no-deps -y
+          # Ensure all dependencies are properly linked
+          conda list | grep -E "numpy|scipy|openblas|blas|lapack"
           
           # Install remaining requirements
           pip install -r backend/requirements.txt
