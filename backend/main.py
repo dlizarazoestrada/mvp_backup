@@ -2,6 +2,12 @@
 Main entry point for the backend server.
 This script will launch the Flask server which includes the WebSocket handling.
 """
+import os
+import sys
+
+# Add the parent directory to Python path so 'backend' can be imported
+parent_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, parent_dir)
 from scoring_server import app, socketio
 from log_config import logger
 import webbrowser
