@@ -25,7 +25,9 @@ jobs:
         shell: bash -l {0}
         run: |
           # Install core scientific packages and system libraries from conda-forge
-          conda install -c conda-forge "libblas=*=*openblas" numpy scipy xz liblzma -y
+          conda install -c conda-forge "libblas=*=*openblas" "liblapack=*=*openblas" numpy scipy xz liblzma openblas veclib -y
+          # Ensure all dependencies are included
+          conda install -c conda-forge --only-deps numpy scipy -y
           
           # Install remaining requirements
           pip install -r backend/requirements.txt
@@ -105,7 +107,9 @@ jobs:
         shell: bash -l {0}
         run: |
           # Install core scientific packages and system libraries from conda-forge
-          conda install -c conda-forge "libblas=*=*openblas" numpy scipy xz liblzma -y
+          conda install -c conda-forge "libblas=*=*openblas" "liblapack=*=*openblas" numpy scipy xz liblzma openblas veclib -y
+          # Ensure all dependencies are included
+          conda install -c conda-forge --only-deps numpy scipy -y
           
           # Install remaining requirements
           pip install -r backend/requirements.txt

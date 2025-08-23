@@ -92,14 +92,22 @@ async function startBackend() {
        pythonLibPath,
        path.join(pythonLibPath, 'python3.11'),
        path.join(pythonLibPath, 'python3.11/lib-dynload'),
-       path.join(pythonLibPath, '.dylibs'),  // Add .dylibs directory
-       '/usr/lib',  // Add system libraries
+       path.join(pythonLibPath, '.dylibs'),
+       path.join(pythonLibPath, 'lib'),
+       '/usr/lib',
+       '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A',
        process.env.DYLD_LIBRARY_PATH
      ].filter(Boolean).join(path.delimiter),
-     DYLD_FRAMEWORK_PATH: pythonLibPath,
+     DYLD_FRAMEWORK_PATH: [
+       pythonLibPath,
+       '/System/Library/Frameworks',
+       '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks',
+       '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A'
+     ].filter(Boolean).join(path.delimiter),
      PYTHONHOME: pythonEnvRoot,
      LC_ALL: 'en_US.UTF-8',
      LANG: 'en_US.UTF-8',
+     VECLIB_MAXIMUM_THREADS: '1',  // Prevent threading issues
    } : {};
 
    const childEnv = {
@@ -123,7 +131,7 @@ async function startBackend() {
   backend = spawn(python, [scriptPath], {
     cwd: runCwd,
     env: childEnv,
-    stdio: 'inherit',
+    stdio: ['inherit', 'pipe', 'pipe'],
     windowsHide: true,
   });
 
