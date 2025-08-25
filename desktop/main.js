@@ -5,14 +5,14 @@ const waitOn = require('wait-on');
 const fs = require('fs');
 const os = require('os');
 
-// Load .env if present (root or desktop folder)
-try {
-  const dotenv = require('dotenv');
-  const rootEnv = path.join(__dirname, '..', '.env');
-  const localEnv = path.join(__dirname, '.env');
-  if (fs.existsSync(rootEnv)) dotenv.config({ path: rootEnv });
-  else if (fs.existsSync(localEnv)) dotenv.config({ path: localEnv });
-} catch (_) { /* optional */ }
+// --- Injected via GitHub Actions at build time ---
+const secrets = {
+  CLIENT_ID: 'YOUR_CLIENT_ID_PLACEHOLDER',
+  CLIENT_SECRET: 'YOUR_CLIENT_SECRET_PLACEHOLDER',
+  USE_MOCK_SERVER: 'false',
+  LOG_VERBOSE: '2',
+};
+// ----------------------------------------------------
 
 let backend = null;
 
@@ -68,7 +68,7 @@ async function startBackend() {
   fs.mkdirSync(runCwd, { recursive: true });
   // Create a temporary config.py override if env vars are provided
   const tmpConfDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mvp-conf-'));
-  const hasSecrets = (process.env.CLIENT_ID || process.env.EMOTIV_CLIENT_ID) && (process.env.CLIENT_SECRET || process.env.EMOTIV_CLIENT_SECRET);
+  const hasSecrets = (secrets.CLIENT_ID) && (secrets.CLIENT_SECRET);
   const parseBool = (val, def) => {
     if (val === undefined || val === null || String(val).trim() === '') return def;
     const v = String(val).trim().toLowerCase();
@@ -76,9 +76,9 @@ async function startBackend() {
     if (["0","false","no","n","off"].includes(v)) return false;
     return def;
   };
-  const useMock = parseBool(process.env.USE_MOCK_SERVER, true);
-  const clientId = process.env.CLIENT_ID || process.env.EMOTIV_CLIENT_ID || 'YOUR_CLIENT_ID';
-  const clientSecret = process.env.CLIENT_SECRET || process.env.EMOTIV_CLIENT_SECRET || 'YOUR_CLIENT_SECRET';
+  const useMock = parseBool(secrets.USE_MOCK_SERVER, false);
+  const clientId = secrets.CLIENT_ID || 'YOUR_CLIENT_ID';
+  const clientSecret = secrets.CLIENT_SECRET || 'YOUR_CLIENT_SECRET';
   const cfgContent = `# Auto-generated at runtime by Electron wrapper\nUSE_MOCK_SERVER = ${useMock ? 'True' : 'False'}\nUSER_CONFIG = {\n  "client_id": "${clientId}",\n  "client_secret": "${clientSecret}",\n  "cortex_url": "ws://localhost:6868" if USE_MOCK_SERVER else "wss://localhost:6868"\n}\n`;
   fs.writeFileSync(path.join(tmpConfDir, 'config.py'), cfgContent);
 
@@ -90,8 +90,8 @@ async function startBackend() {
    const macOSPaths = process.platform === 'darwin' ? {
      DYLD_LIBRARY_PATH: [
        pythonLibPath,
-       path.join(pythonLibPath, 'python3.11'),
-       path.join(pythonLibPath, 'python3.11/lib-dynload'),
+       path.join(pythonLibPath, 'python3.9'),
+       path.join(pythonLibPath, 'python3.9/lib-dynload'),
        path.join(pythonLibPath, '.dylibs'),
        path.join(pythonLibPath, 'lib'),
        '/usr/lib',
@@ -117,10 +117,10 @@ async function startBackend() {
      CLIENT_ID: clientId,
      CLIENT_SECRET: clientSecret,
      USE_MOCK_SERVER: useMock ? '1' : '0',
-     LOG_VERBOSE: process.env.LOG_VERBOSE || '2',
+     LOG_VERBOSE: secrets.LOG_VERBOSE || '2',
      PYTHONPATH: [
        tmpConfDir,
-       path.join(pythonEnvRoot, 'lib/python3.11/site-packages'),
+       path.join(pythonEnvRoot, 'lib/python3.9/site-packages'),
        process.env.PYTHONPATH
      ].filter(Boolean).join(path.delimiter),
      ...macOSPaths

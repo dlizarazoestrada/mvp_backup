@@ -18,7 +18,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           activate-environment: mvp
-          python-version: 3.11
+          python-version: 3.9
           auto-update-conda: true
 
       - name: Create mac Python env and pack
@@ -62,13 +62,15 @@ jobs:
           cp -R backend desktop/resources/app/backend
           cp -R frontend desktop/resources/app/frontend
 
-      - name: Write .env for packaged app (from GitHub Secrets/Vars)
+      - name: Inject Secrets into Electron App
+        shell: bash
         run: |
-          : > desktop/.env
-          echo "USE_MOCK_SERVER=${{ vars.USE_MOCK_SERVER || 'false' }}" >> desktop/.env
-          echo "LOG_VERBOSE=${{ vars.LOG_VERBOSE || '2' }}" >> desktop/.env
-          echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> desktop/.env
-          echo "CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}" >> desktop/.env
+          # Use sed to replace placeholders in main.js with actual secrets
+          # Note the use of different delimiters for sed to handle special characters in secrets
+          sed -i.bak "s|YOUR_CLIENT_ID_PLACEHOLDER|${{ secrets.CLIENT_ID }}|g" "desktop/main.js"
+          sed -i.bak "s|YOUR_CLIENT_SECRET_PLACEHOLDER|${{ secrets.CLIENT_SECRET }}|g" "desktop/main.js"
+          sed -i.bak "s|'false'|'${{ vars.USE_MOCK_SERVER || 'false' }}'|g" "desktop/main.js"
+          sed -i.bak "s|'2'|'${{ vars.LOG_VERBOSE || '2' }}'|g" "desktop/main.js"
 
 
       - name: Install desktop deps
@@ -102,7 +104,7 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           activate-environment: mvp
-          python-version: 3.11
+          python-version: 3.9
           auto-update-conda: true
 
       - name: Create mac Python env and pack (x64)
@@ -146,13 +148,15 @@ jobs:
           cp -R backend desktop/resources/app/backend
           cp -R frontend desktop/resources/app/frontend
 
-      - name: Write .env for packaged app (from GitHub Secrets/Vars)
+      - name: Inject Secrets into Electron App (x64)
+        shell: bash
         run: |
-          : > desktop/.env
-          echo "USE_MOCK_SERVER=${{ vars.USE_MOCK_SERVER || 'false' }}" >> desktop/.env
-          echo "LOG_VERBOSE=${{ vars.LOG_VERBOSE || '2' }}" >> desktop/.env
-          echo "CLIENT_ID=${{ secrets.CLIENT_ID }}" >> desktop/.env
-          echo "CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}" >> desktop/.env
+          # Use sed to replace placeholders in main.js with actual secrets
+          sed -i.bak "s|YOUR_CLIENT_ID_PLACEHOLDER|${{ secrets.CLIENT_ID }}|g" "desktop/main.js"
+          sed -i.bak "s|YOUR_CLIENT_SECRET_PLACEHOLDER|${{ secrets.CLIENT_SECRET }}|g" "desktop/main.js"
+          sed -i.bak "s|'true'|'${{ vars.USE_MOCK_SERVER || 'false' }}'|g" "desktop/main.js"
+          sed -i.bak "s|'2'|'${{ vars.LOG_VERBOSE || '2' }}'|g" "desktop/main.js"
+
 
       - name: Install desktop deps
         working-directory: desktop
