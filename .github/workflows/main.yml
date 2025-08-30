@@ -5,7 +5,7 @@ on:
 
 jobs:
   mac-arm64:
-    runs-on: macos-12
+    runs-on: macos-11
     steps:
       - uses: actions/checkout@v4
 
@@ -91,7 +91,7 @@ jobs:
           path: desktop/dist/*
 
   mac-x64:
-    runs-on: macos-12
+    runs-on: macos-11
     steps:
       - uses: actions/checkout@v4
 
