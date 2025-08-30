@@ -38,6 +38,9 @@ jobs:
           conda install -y pyinstaller
           pyinstaller backend/main.py --name backend_executable --onefile --noconfirm
           
+          # Add execute permissions to the backend executable
+          chmod +x dist/backend_executable
+          
           # Pack environment with all dependencies
           conda install -y conda-pack
           conda pack -n mvp -o mvp-env.tar.gz
@@ -133,6 +136,9 @@ jobs:
           # Install PyInstaller and build the standalone backend executable (x64)
           conda install -y pyinstaller
           pyinstaller backend/main.py --name backend_executable --onefile --noconfirm
+          
+          # Add execute permissions to the backend executable
+          chmod +x dist/backend_executable
           
           # Pack environment with all dependencies
           conda install -y conda-pack
