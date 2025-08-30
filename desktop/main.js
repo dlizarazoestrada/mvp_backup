@@ -86,24 +86,18 @@ async function startBackend() {
    const pythonEnvRoot = getPythonEnvRoot();
    const pythonLibPath = path.join(pythonEnvRoot, 'lib');
    
-   // Special handling for macOS paths
+   // Special handling for macOS paths - Create a completely isolated environment
    const macOSPaths = process.platform === 'darwin' ? {
+     // Force the dynamic linker to ONLY look inside our bundled Python environment
      DYLD_LIBRARY_PATH: [
        pythonLibPath,
-       path.join(pythonLibPath, 'python3.9'),
-       path.join(pythonLibPath, 'python3.9/lib-dynload'),
        path.join(pythonLibPath, '.dylibs'),
        path.join(pythonLibPath, 'lib'),
-       '/usr/lib',
-       '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A',
-       process.env.DYLD_LIBRARY_PATH
      ].filter(Boolean).join(path.delimiter),
-     DYLD_FRAMEWORK_PATH: [
-       pythonLibPath,
-       '/System/Library/Frameworks',
-       '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks',
-       '/System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A'
-     ].filter(Boolean).join(path.delimiter),
+     
+     // Point to our frameworks, ignoring the system ones
+     DYLD_FRAMEWORK_PATH: pythonLibPath,
+
      PYTHONHOME: pythonEnvRoot,
      LC_ALL: 'en_US.UTF-8',
      LANG: 'en_US.UTF-8',
@@ -118,10 +112,10 @@ async function startBackend() {
      CLIENT_SECRET: clientSecret,
      USE_MOCK_SERVER: useMock ? '1' : '0',
      LOG_VERBOSE: secrets.LOG_VERBOSE || '2',
+     // We need to clear the inherited PYTHONPATH to ensure only our paths are used
      PYTHONPATH: [
        tmpConfDir,
        path.join(pythonEnvRoot, 'lib/python3.9/site-packages'),
-       process.env.PYTHONPATH
      ].filter(Boolean).join(path.delimiter),
      ...macOSPaths
    };
