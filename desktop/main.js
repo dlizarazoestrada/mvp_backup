@@ -17,6 +17,8 @@ const secrets = {
 let backend = null;
 
 function getResourcesRoot() {
+  // In a packaged app, the resources directory is at process.resourcesPath
+  // In development, it's just the current directory ('desktop')
   return app.isPackaged
     ? process.resourcesPath
     : __dirname;
@@ -25,27 +27,11 @@ function getResourcesRoot() {
 function getBackendExecutablePath() {
   const resourcesRoot = getResourcesRoot();
   const exeName = process.platform === 'win32' ? 'backend_executable.exe' : 'backend_executable';
-  // The executable is now placed directly in the resources folder
-  return path.join(resourcesRoot, exeName);
-}
-
-function getPythonEnvRoot() {
-  return path.join(getResourcesRoot(), 'python-env');
-}
-
-function getPythonExecutable() {
-  const envRoot = getPythonEnvRoot();
-  if (process.platform === 'win32') {
-    const pythonw = path.join(envRoot, 'pythonw.exe');
-    if (fs.existsSync(pythonw)) return pythonw; // no console window
-    return path.join(envRoot, 'python.exe');
-  }
-  return path.join(envRoot, 'bin', 'python');
-}
-
-function getAppRoot() {
-  // where backend/ and frontend/ are placed inside the packaged app
-  return path.join(getResourcesRoot(), 'app');
+  
+  // With PyInstaller's directory output, the executable is inside a folder
+  // that has the same name.
+  // Final path: <resources>/backend_executable/backend_executable
+  return path.join(resourcesRoot, 'backend_executable', exeName);
 }
 
 async function startBackend() {
@@ -53,6 +39,23 @@ async function startBackend() {
   
   console.log('Starting backend with executable:');
   console.log('Executable path:', backendExecutable);
+
+  // --- macOS Gatekeeper Fix ---
+  // On macOS, files downloaded from the internet get a "quarantine" attribute.
+  // This can prevent our unsigned backend executable from running, causing an EACCES error.
+  // We explicitly remove this attribute before trying to execute it.
+  if (process.platform === 'darwin' && app.isPackaged) {
+    try {
+      const { execSync } = require('child_process');
+      const command = `xattr -cr "${backendExecutable}"`;
+      console.log(`[Gatekeeper Fix] Running command: ${command}`);
+      execSync(command);
+      console.log(`[Gatekeeper Fix] Successfully removed quarantine attribute.`);
+    } catch (error) {
+      console.error(`[Gatekeeper Fix] Failed to remove quarantine attribute:`, error);
+      // We'll still try to launch, but it might fail.
+    }
+  }
 
   const portPref = process.env.PORT || '5000';
   const getFreePort = async (start) => {
@@ -65,14 +68,16 @@ async function startBackend() {
     }
   };
   const port = await getFreePort(portPref);
-  // On macOS, the app bundle path is not writable. Use userData; on Windows keep exe dir.
+  // On macOS, the app bundle path is not writable. Use userData for logs/data.
+  // On other platforms, using the exe's directory is fine.
   const runCwd = process.platform === 'darwin'
     ? path.join(app.getPath('userData'), 'AlumenEEG')
     : path.dirname(process.execPath);
   fs.mkdirSync(runCwd, { recursive: true });
-  // Create a temporary config.py override if env vars are provided
+
+  // Dynamically create a config.py override with secrets injected at build time.
+  // This avoids storing secrets in the packaged source code.
   const tmpConfDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mvp-conf-'));
-  const hasSecrets = (secrets.CLIENT_ID) && (secrets.CLIENT_SECRET);
   const parseBool = (val, def) => {
     if (val === undefined || val === null || String(val).trim() === '') return def;
     const v = String(val).trim().toLowerCase();
@@ -86,28 +91,9 @@ async function startBackend() {
   const cfgContent = `# Auto-generated at runtime by Electron wrapper\nUSE_MOCK_SERVER = ${useMock ? 'True' : 'False'}\nUSER_CONFIG = {\n  "client_id": "${clientId}",\n  "client_secret": "${clientSecret}",\n  "cortex_url": "ws://localhost:6868" if USE_MOCK_SERVER else "wss://localhost:6868"\n}\n`;
   fs.writeFileSync(path.join(tmpConfDir, 'config.py'), cfgContent);
 
-     // Prepare environment variables for Python
-   const pythonEnvRoot = getPythonEnvRoot();
-   const pythonLibPath = path.join(pythonEnvRoot, 'lib');
-   
-   // Special handling for macOS paths - Create a completely isolated environment
-   const macOSPaths = process.platform === 'darwin' ? {
-     // Force the dynamic linker to ONLY look inside our bundled Python environment
-     DYLD_LIBRARY_PATH: [
-       pythonLibPath,
-       path.join(pythonLibPath, '.dylibs'),
-       path.join(pythonLibPath, 'lib'),
-     ].filter(Boolean).join(path.delimiter),
-     
-     // Point to our frameworks, ignoring the system ones
-     DYLD_FRAMEWORK_PATH: pythonLibPath,
-
-     PYTHONHOME: pythonEnvRoot,
-     LC_ALL: 'en_US.UTF-8',
-     LANG: 'en_US.UTF-8',
-     VECLIB_MAXIMUM_THREADS: '1',  // Prevent threading issues
-   } : {};
-
+  // Since we are using a self-contained PyInstaller executable, we no longer need
+  // to set up a complex Python environment with DYLD_LIBRARY_PATH, etc.
+  // We only need to provide our temporary config path via PYTHONPATH.
    const childEnv = {
      ...process.env,
      OPEN_BROWSER: '0',
@@ -116,12 +102,8 @@ async function startBackend() {
      CLIENT_SECRET: clientSecret,
      USE_MOCK_SERVER: useMock ? '1' : '0',
      LOG_VERBOSE: secrets.LOG_VERBOSE || '2',
-     // We need to clear the inherited PYTHONPATH to ensure only our paths are used
-     PYTHONPATH: [
-       tmpConfDir,
-       path.join(pythonEnvRoot, 'lib/python3.9/site-packages'),
-     ].filter(Boolean).join(path.delimiter),
-     ...macOSPaths
+     // By setting PYTHONPATH, the bundled Python script can find our generated config.
+     PYTHONPATH: tmpConfDir,
    };
 
   console.log('Spawning backend process with CWD:', runCwd);
@@ -149,6 +131,7 @@ async function startBackend() {
   backend.on('exit', (code, signal) => {
     console.log('Backend process exited with code:', code, 'signal:', signal);
   });
+
   await waitOn({ resources: [`http://127.0.0.1:${port}`], timeout: 30000 });
   return port;
 }

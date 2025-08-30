@@ -13,6 +13,7 @@
     "appId": "com.alumen.eeg",
     "productName": "Alumen EEG",
     "asar": true,
+    "afterPack": "./afterPack.js",
     "files": [
       "main.js",
       "package.json",

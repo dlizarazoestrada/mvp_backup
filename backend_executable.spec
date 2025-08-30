@@ -13,7 +13,7 @@ a = Analysis(
     ['backend/main.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('backend', 'backend')],
     hiddenimports=hidden_imports,
     hookspath=[],
     hooksconfig={},
