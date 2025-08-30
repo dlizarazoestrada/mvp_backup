@@ -34,9 +34,9 @@ jobs:
           # Install remaining requirements
           pip install -r backend/requirements.txt
           
-          # Install PyInstaller and build the standalone backend executable
+          # Install PyInstaller and build the standalone backend executable using the .spec file
           conda install -y pyinstaller
-          pyinstaller backend/main.py --name backend_executable --onefile --noconfirm --hidden-import="eventlet.hubs.kqueue"
+          pyinstaller backend_executable.spec --noconfirm
           
           # Add execute permissions to the backend executable
           chmod +x dist/backend_executable
@@ -99,9 +99,9 @@ jobs:
           # Install remaining requirements
           pip install -r backend/requirements.txt
           
-          # Install PyInstaller and build the standalone backend executable (x64)
+          # Install PyInstaller and build the standalone backend executable using the .spec file (x64)
           conda install -y pyinstaller
-          pyinstaller backend/main.py --name backend_executable --onefile --noconfirm --hidden-import="eventlet.hubs.kqueue"
+          pyinstaller backend_executable.spec --noconfirm
           
           # Add execute permissions to the backend executable
           chmod +x dist/backend_executable
