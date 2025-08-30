@@ -20,7 +20,7 @@
     ],
     "extraResources": [
       {
-        "from": "dist/backend_executable",
+        "from": "../dist/backend_executable",
         "to": "backend_executable"
       },
       {
