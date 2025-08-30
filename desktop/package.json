@@ -36,13 +36,7 @@
       "artifactName": "${productName}-Setup-${version}.${ext}"
     },
     "mac": {
-      "target": [
-        "dmg",
-        "zip"
-      ],
-      "category": "public.app-category.productivity",
-      "icon": "build/icons/mac/icon.icns",
-      "artifactName": "${productName}-${version}-${os}.${ext}",
+      "target": "zip",
       "minimumSystemVersion": "10.13"
     }
   },
