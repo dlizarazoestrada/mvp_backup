@@ -10,7 +10,7 @@ hidden_imports = collect_submodules('eventlet')
 hidden_imports += collect_submodules('dns')
 
 a = Analysis(
-    ['backend/main.py'],
+    ['run_backend.py'],
     pathex=[],
     binaries=[],
     datas=[('backend', 'backend')],
