@@ -19,7 +19,14 @@ let backend = null;
 function getResourcesRoot() {
   return app.isPackaged
     ? process.resourcesPath
-    : path.join(__dirname);
+    : __dirname;
+}
+
+function getBackendExecutablePath() {
+  const resourcesRoot = getResourcesRoot();
+  const exeName = process.platform === 'win32' ? 'backend_executable.exe' : 'backend_executable';
+  // The executable is now placed in a 'backend' folder inside resources
+  return path.join(resourcesRoot, 'backend', exeName);
 }
 
 function getPythonEnvRoot() {
@@ -42,14 +49,11 @@ function getAppRoot() {
 }
 
 async function startBackend() {
-  const python = getPythonExecutable();
-  const appRoot = getAppRoot();
-  const scriptPath = path.join(appRoot, 'backend', 'main.py');
+  const backendExecutable = getBackendExecutablePath();
   
-  console.log('Starting backend with:');
-  console.log('Python executable:', python);
-  console.log('App root:', appRoot);
-  console.log('Script path:', scriptPath);
+  console.log('Starting backend with executable:');
+  console.log('Executable path:', backendExecutable);
+
   const portPref = process.env.PORT || '5000';
   const getFreePort = async (start) => {
     try {
@@ -122,7 +126,7 @@ async function startBackend() {
 
   console.log('Spawning backend process with CWD:', runCwd);
   
-  backend = spawn(python, [scriptPath], {
+  backend = spawn(backendExecutable, [], {
     cwd: runCwd,
     env: childEnv,
     stdio: ['inherit', 'pipe', 'pipe'],

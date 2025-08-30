@@ -34,6 +34,10 @@ jobs:
           # Install remaining requirements
           pip install -r backend/requirements.txt
           
+          # Install PyInstaller and build the standalone backend executable
+          conda install -y pyinstaller
+          pyinstaller backend/main.py --name backend_executable --onefile --noconfirm
+          
           # Pack environment with all dependencies
           conda install -y conda-pack
           conda pack -n mvp -o mvp-env.tar.gz
@@ -58,8 +62,10 @@ jobs:
 
       - name: Prepare app resources
         run: |
-          mkdir -p desktop/resources/app
-          cp -R backend desktop/resources/app/backend
+          mkdir -p desktop/resources/backend
+          # Move the PyInstaller executable to the resources folder
+          mv dist/backend_executable desktop/resources/backend/
+          # Copy frontend files
           cp -R frontend desktop/resources/app/frontend
 
       - name: Inject Secrets into Electron App
@@ -120,6 +126,10 @@ jobs:
           # Install remaining requirements
           pip install -r backend/requirements.txt
           
+          # Install PyInstaller and build the standalone backend executable (x64)
+          conda install -y pyinstaller
+          pyinstaller backend/main.py --name backend_executable --onefile --noconfirm
+          
           # Pack environment with all dependencies
           conda install -y conda-pack
           conda pack -n mvp -o mvp-env.tar.gz
@@ -144,8 +154,10 @@ jobs:
 
       - name: Prepare app resources
         run: |
-          mkdir -p desktop/resources/app
-          cp -R backend desktop/resources/app/backend
+          mkdir -p desktop/resources/backend
+          # Move the PyInstaller executable to the resources folder
+          mv dist/backend_executable desktop/resources/backend/
+          # Copy frontend files
           cp -R frontend desktop/resources/app/frontend
 
       - name: Inject Secrets into Electron App (x64)
