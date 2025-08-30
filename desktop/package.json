@@ -13,18 +13,19 @@
     "appId": "com.alumen.eeg",
     "productName": "Alumen EEG",
     "asar": true,
+    "files": [
+      "main.js",
+      "package.json",
+      "splash.html"
+    ],
     "extraResources": [
       {
-        "from": "../backend",
-        "to": "app/backend"
+        "from": "dist/backend_executable",
+        "to": "backend_executable"
       },
       {
         "from": "../frontend",
-        "to": "app/frontend"
-      },
-      {
-        "from": "resources/python-env",
-        "to": "python-env"
+        "to": "frontend"
       }
     ],
     "win": {

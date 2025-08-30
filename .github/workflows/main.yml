@@ -41,9 +41,9 @@ jobs:
           # Add execute permissions to the backend executable
           chmod +x dist/backend_executable
           
-          # Pack environment with all dependencies
-          conda install -y conda-pack
-          conda pack -n mvp -o mvp-env.tar.gz
+          # We no longer need to pack the python environment
+          # conda install -y conda-pack
+          # conda pack -n mvp -o mvp-env.tar.gz
           
           # Extract and prepare environment
           mkdir -p desktop/resources/python-env
@@ -62,18 +62,6 @@ jobs:
           print('NumPy location:', np.__file__)
           print('OpenBLAS location:', [f for f in os.listdir('./lib') if 'openblas' in f.lower()])
           "
-
-      - name: Prepare app resources
-        run: |
-          # Create the destination directories
-          mkdir -p desktop/resources/backend
-          mkdir -p desktop/resources/frontend
-          
-          # Move the PyInstaller executable
-          mv dist/backend_executable desktop/resources/backend/
-          
-          # Copy frontend files
-          cp -R frontend/* desktop/resources/frontend/
 
       - name: Inject Secrets into Electron App
         shell: bash
@@ -140,9 +128,9 @@ jobs:
           # Add execute permissions to the backend executable
           chmod +x dist/backend_executable
           
-          # Pack environment with all dependencies
-          conda install -y conda-pack
-          conda pack -n mvp -o mvp-env.tar.gz
+          # We no longer need to pack the python environment
+          # conda install -y conda-pack
+          # conda pack -n mvp -o mvp-env.tar.gz
           
           # Extract and prepare environment
           mkdir -p desktop/resources/python-env
@@ -161,18 +149,6 @@ jobs:
           print('NumPy location:', np.__file__)
           print('OpenBLAS location:', [f for f in os.listdir('./lib') if 'openblas' in f.lower()])
           "
-
-      - name: Prepare app resources
-        run: |
-          # Create the destination directories
-          mkdir -p desktop/resources/backend
-          mkdir -p desktop/resources/frontend
-
-          # Move the PyInstaller executable
-          mv dist/backend_executable desktop/resources/backend/
-          
-          # Copy frontend files
-          cp -R frontend/* desktop/resources/frontend/
 
       - name: Inject Secrets into Electron App (x64)
         shell: bash

@@ -15,6 +15,7 @@ import threading
 import os
 import numpy as np
 import time
+import sys
 
 # Local imports (using absolute imports from the project root)
 from backend.model_interface import get_score_from_ratio
@@ -24,8 +25,10 @@ from backend.log_config import logger
 from backend import eeg_processor
 
 # --- Path Setup ---
-_dir = os.path.dirname(os.path.abspath(__file__))
-# Navigate up one level from 'backend' to the project root to find 'frontend'
+# When running inside PyInstaller, the executable's directory is sys._MEIPASS
+# In development, it's the script's directory.
+_dir = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
+# The 'frontend' folder is now a sibling to the 'backend_executable' inside 'resources'
 frontend_folder = os.path.join(_dir, '..', 'frontend')
 
 # Configure the Flask app

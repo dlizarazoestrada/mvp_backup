@@ -25,8 +25,8 @@ function getResourcesRoot() {
 function getBackendExecutablePath() {
   const resourcesRoot = getResourcesRoot();
   const exeName = process.platform === 'win32' ? 'backend_executable.exe' : 'backend_executable';
-  // The executable is now placed in a 'backend' folder inside resources
-  return path.join(resourcesRoot, 'backend', exeName);
+  // The executable is now placed directly in the resources folder
+  return path.join(resourcesRoot, exeName);
 }
 
 function getPythonEnvRoot() {
