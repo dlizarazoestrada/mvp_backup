@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Desktop wrapper for Mental Health MVP (Electron + packaged Python backend)",
   "main": "main.js",
+  "author": "Alumen Team",
   "scripts": {
     "start": "electron .",
     "dist:win": "electron-builder --win nsis zip",
