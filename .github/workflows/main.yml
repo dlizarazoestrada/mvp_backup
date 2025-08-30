@@ -41,28 +41,6 @@ jobs:
           # Add execute permissions to the backend executable
           chmod +x dist/backend_executable
           
-          # We no longer need to pack the python environment
-          # conda install -y conda-pack
-          # conda pack -n mvp -o mvp-env.tar.gz
-          
-          # Extract and prepare environment
-          mkdir -p desktop/resources/python-env
-          tar -xzf mvp-env.tar.gz -C desktop/resources/python-env
-          
-          # Fix permissions and paths
-          chmod +x desktop/resources/python-env/bin/*
-          cd desktop/resources/python-env
-          ./bin/conda-unpack
-          
-          # Verify numpy and its dependencies
-          ./bin/python -c "
-          import numpy as np
-          import os
-          print('NumPy version:', np.__version__)
-          print('NumPy location:', np.__file__)
-          print('OpenBLAS location:', [f for f in os.listdir('./lib') if 'openblas' in f.lower()])
-          "
-
       - name: Inject Secrets into Electron App
         shell: bash
         run: |
@@ -128,28 +106,6 @@ jobs:
           # Add execute permissions to the backend executable
           chmod +x dist/backend_executable
           
-          # We no longer need to pack the python environment
-          # conda install -y conda-pack
-          # conda pack -n mvp -o mvp-env.tar.gz
-          
-          # Extract and prepare environment
-          mkdir -p desktop/resources/python-env
-          tar -xzf mvp-env.tar.gz -C desktop/resources/python-env
-          
-          # Fix permissions and paths
-          chmod +x desktop/resources/python-env/bin/*
-          cd desktop/resources/python-env
-          ./bin/conda-unpack
-          
-          # Verify numpy and its dependencies
-          ./bin/python -c "
-          import numpy as np
-          import os
-          print('NumPy version:', np.__version__)
-          print('NumPy location:', np.__file__)
-          print('OpenBLAS location:', [f for f in os.listdir('./lib') if 'openblas' in f.lower()])
-          "
-
       - name: Inject Secrets into Electron App (x64)
         shell: bash
         run: |
