@@ -36,7 +36,7 @@ jobs:
           
           # Install PyInstaller and build the standalone backend executable
           conda install -y pyinstaller
-          pyinstaller backend/main.py --name backend_executable --onefile --noconfirm
+          pyinstaller backend/main.py --name backend_executable --onefile --noconfirm --hidden-import="eventlet.hubs.kqueue"
           
           # Add execute permissions to the backend executable
           chmod +x dist/backend_executable
@@ -101,7 +101,7 @@ jobs:
           
           # Install PyInstaller and build the standalone backend executable (x64)
           conda install -y pyinstaller
-          pyinstaller backend/main.py --name backend_executable --onefile --noconfirm
+          pyinstaller backend/main.py --name backend_executable --onefile --noconfirm --hidden-import="eventlet.hubs.kqueue"
           
           # Add execute permissions to the backend executable
           chmod +x dist/backend_executable
