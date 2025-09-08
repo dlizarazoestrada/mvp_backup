@@ -19,20 +19,43 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install and link gettext
+      - name: Build and Fix Backend Executable
         shell: bash
         run: |
+          # 1. Install dependencies
           brew install gettext
-          echo "LDFLAGS=-L$(brew --prefix gettext)/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$(brew --prefix gettext)/include" >> $GITHUB_ENV
-          echo "DYLD_LIBRARY_PATH=$(brew --prefix gettext)/lib" >> $GITHUB_ENV
-
-      - name: Build Backend Executable
-        shell: bash
-        run: |
           pip install -r backend/requirements.txt
+          
+          # 2. Set linker flags as a fallback for the build
+          export LDFLAGS="-L$(brew --prefix gettext)/lib"
+          export CPPFLAGS="-I$(brew --prefix gettext)/include"
+          
+          # 3. Build the executable with PyInstaller
           pyinstaller backend_executable.spec --noconfirm
-          chmod +x dist/backend_executable
+          
+          # 4. --- Post-build manual fix for libintl.8.dylib ---
+          echo "--- Starting manual dylib fix ---"
+          
+          # Define paths for clarity
+          EXEC_PATH="dist/backend_executable/backend_executable"
+          GETTEXT_DYLIB_PATH=$(brew --prefix gettext)/lib/libintl.8.dylib
+          TARGET_BUNDLE_DIR="dist/backend_executable/_internal"
+          
+          # Copy the dylib directly into the app's bundle
+          cp "$GETTEXT_DYLIB_PATH" "$TARGET_BUNDLE_DIR/"
+          echo "Copied libintl.8.dylib from Homebrew to the app bundle."
+          
+          # Use install_name_tool to patch the executable, forcing it to look inside its own bundle
+          # @executable_path is a special variable that means "the same directory as this executable"
+          install_name_tool -change @rpath/libintl.8.dylib @executable_path/../_internal/libintl.8.dylib "$EXEC_PATH"
+          echo "Patched the executable to use the bundled dylib."
+          
+          # 5. Verify the fix
+          echo "--- Verifying the patch ---"
+          otool -L "$EXEC_PATH" | grep 'libintl'
+          
+          # 6. Finalize permissions
+          chmod +x "$EXEC_PATH"
 
       - name: Inject Secrets into Electron App
         shell: bash
@@ -77,20 +100,43 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install and link gettext
+      - name: Build and Fix Backend Executable (x64)
         shell: bash
         run: |
+          # 1. Install dependencies
           brew install gettext
-          echo "LDFLAGS=-L$(brew --prefix gettext)/lib" >> $GITHUB_ENV
-          echo "CPPFLAGS=-I$(brew --prefix gettext)/include" >> $GITHUB_ENV
-          echo "DYLD_LIBRARY_PATH=$(brew --prefix gettext)/lib" >> $GITHUB_ENV
-
-      - name: Build Backend Executable (x64)
-        shell: bash
-        run: |
           pip install -r backend/requirements.txt
+          
+          # 2. Set linker flags as a fallback for the build
+          export LDFLAGS="-L$(brew --prefix gettext)/lib"
+          export CPPFLAGS="-I$(brew --prefix gettext)/include"
+          
+          # 3. Build the executable with PyInstaller
           pyinstaller backend_executable.spec --noconfirm
-          chmod +x dist/backend_executable
+          
+          # 4. --- Post-build manual fix for libintl.8.dylib ---
+          echo "--- Starting manual dylib fix ---"
+          
+          # Define paths for clarity
+          EXEC_PATH="dist/backend_executable/backend_executable"
+          GETTEXT_DYLIB_PATH=$(brew --prefix gettext)/lib/libintl.8.dylib
+          TARGET_BUNDLE_DIR="dist/backend_executable/_internal"
+          
+          # Copy the dylib directly into the app's bundle
+          cp "$GETTEXT_DYLIB_PATH" "$TARGET_BUNDLE_DIR/"
+          echo "Copied libintl.8.dylib from Homebrew to the app bundle."
+          
+          # Use install_name_tool to patch the executable, forcing it to look inside its own bundle
+          # @executable_path is a special variable that means "the same directory as this executable"
+          install_name_tool -change @rpath/libintl.8.dylib @executable_path/../_internal/libintl.8.dylib "$EXEC_PATH"
+          echo "Patched the executable to use the bundled dylib."
+          
+          # 5. Verify the fix
+          echo "--- Verifying the patch ---"
+          otool -L "$EXEC_PATH" | grep 'libintl'
+          
+          # 6. Finalize permissions
+          chmod +x "$EXEC_PATH"
 
       - name: Inject Secrets into Electron App (x64)
         shell: bash
