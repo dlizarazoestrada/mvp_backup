@@ -14,33 +14,18 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          activate-environment: mvp
-          python-version: 3.9
-          auto-update-conda: true
+          python-version: '3.9'
 
-      - name: Create mac Python env and pack
-        shell: bash -l {0}
+      - name: Build Backend Executable
+        shell: bash
         run: |
-          # Install core scientific packages and system libraries from conda-forge
-          conda install -c conda-forge "libblas=*=*openblas" "liblapack=*=*openblas" numpy scipy xz liblzma openblas -y
-          # Install numpy with specific BLAS/LAPACK configuration
-          conda install -c conda-forge numpy scipy --no-deps -y
-          # Ensure all dependencies are properly linked
-          conda list | grep -E "numpy|scipy|openblas|blas|lapack"
-          
-          # Install remaining requirements
           pip install -r backend/requirements.txt
-          
-          # Install PyInstaller and build the standalone backend executable using the .spec file
-          conda install -y pyinstaller
           pyinstaller backend_executable.spec --noconfirm
-          
-          # Add execute permissions to the backend executable
           chmod +x dist/backend_executable
-          
+
       - name: Inject Secrets into Electron App
         shell: bash
         run: |
@@ -79,33 +64,18 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Setup Miniconda
-        uses: conda-incubator/setup-miniconda@v3
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
-          activate-environment: mvp
-          python-version: 3.9
-          auto-update-conda: true
+          python-version: '3.9'
 
-      - name: Create mac Python env and pack (x64)
-        shell: bash -l {0}
+      - name: Build Backend Executable (x64)
+        shell: bash
         run: |
-          # Install core scientific packages and system libraries from conda-forge
-          conda install -c conda-forge "libblas=*=*openblas" "liblapack=*=*openblas" numpy scipy xz liblzma openblas -y
-          # Install numpy with specific BLAS/LAPACK configuration
-          conda install -c conda-forge numpy scipy --no-deps -y
-          # Ensure all dependencies are properly linked
-          conda list | grep -E "numpy|scipy|openblas|blas|lapack"
-          
-          # Install remaining requirements
           pip install -r backend/requirements.txt
-          
-          # Install PyInstaller and build the standalone backend executable using the .spec file (x64)
-          conda install -y pyinstaller
           pyinstaller backend_executable.spec --noconfirm
-          
-          # Add execute permissions to the backend executable
           chmod +x dist/backend_executable
-          
+
       - name: Inject Secrets into Electron App (x64)
         shell: bash
         run: |

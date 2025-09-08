@@ -11,3 +11,4 @@ eventlet
 dnspython
 websocket-client
 websockets
+pyinstaller
