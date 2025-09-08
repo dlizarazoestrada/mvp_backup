@@ -6,8 +6,23 @@ from PyInstaller.utils.hooks import collect_submodules
 # --- Hidden Imports ---
 # This tells PyInstaller to include modules that it cannot find on its own.
 # We collect ALL submodules from 'eventlet' and 'dns' to prevent ModuleNotFoundError.
-hidden_imports = collect_submodules('eventlet')
-hidden_imports += collect_submodules('dns')
+# Also including all other dependencies from requirements.txt to be safe.
+hidden_imports = [
+    'eventlet',
+    'dns',
+    'flask',
+    'flask_cors',
+    'flask_socketio',
+    'engineio',
+    'socketio',
+    'numpy',
+    'scipy',
+    'mne',
+    'dotenv',
+    'websocket',
+    'websockets',
+]
+hidden_imports = [mod for lib in hidden_imports for mod in collect_submodules(lib)]
 
 a = Analysis(
     ['run_backend.py'],
