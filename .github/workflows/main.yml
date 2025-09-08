@@ -19,8 +19,13 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install gettext
-        run: brew install gettext
+      - name: Install and link gettext
+        shell: bash
+        run: |
+          brew install gettext
+          echo "LDFLAGS=-L$(brew --prefix gettext)/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$(brew --prefix gettext)/include" >> $GITHUB_ENV
+          echo "DYLD_LIBRARY_PATH=$(brew --prefix gettext)/lib" >> $GITHUB_ENV
 
       - name: Build Backend Executable
         shell: bash
@@ -72,8 +77,13 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install gettext
-        run: brew install gettext
+      - name: Install and link gettext
+        shell: bash
+        run: |
+          brew install gettext
+          echo "LDFLAGS=-L$(brew --prefix gettext)/lib" >> $GITHUB_ENV
+          echo "CPPFLAGS=-I$(brew --prefix gettext)/include" >> $GITHUB_ENV
+          echo "DYLD_LIBRARY_PATH=$(brew --prefix gettext)/lib" >> $GITHUB_ENV
 
       - name: Build Backend Executable (x64)
         shell: bash
