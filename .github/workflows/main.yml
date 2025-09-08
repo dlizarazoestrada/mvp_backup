@@ -19,6 +19,9 @@ jobs:
         with:
           python-version: '3.9'
 
+      - name: Install gettext
+        run: brew install gettext
+
       - name: Build Backend Executable
         shell: bash
         run: |
@@ -68,6 +71,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.9'
+
+      - name: Install gettext
+        run: brew install gettext
 
       - name: Build Backend Executable (x64)
         shell: bash
