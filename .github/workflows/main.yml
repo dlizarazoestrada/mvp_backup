@@ -37,34 +37,29 @@ jobs:
           echo "--- Starting manual dylib fix ---"
           
           # Define paths for clarity
-          EXEC_PATH="dist/backend_executable/backend_executable"
-          
-          # --- DIAGNOSTIC: Show original linked libraries ---
-          echo "--- Original linked libraries before patching: ---"
-          otool -L "$EXEC_PATH"
-          
-          GETTEXT_DYLIB_PATH=$(brew --prefix gettext)/lib/libintl.8.dylib
           TARGET_BUNDLE_DIR="dist/backend_executable/_internal"
+          PYTHON_DYLIB_PATH="$TARGET_BUNDLE_DIR/libpython3.9.dylib"
+          GETTEXT_DYLIB_PATH=$(brew --prefix gettext)/lib/libintl.8.dylib
+          
+          # --- DIAGNOSTIC: Show original linked libraries for the Python dylib ---
+          echo "--- Original linked libraries for libpython3.9.dylib before patching: ---"
+          otool -L "$PYTHON_DYLIB_PATH"
           
           # Copy the dylib directly into the app's bundle
           cp "$GETTEXT_DYLIB_PATH" "$TARGET_BUNDLE_DIR/"
           echo "Copied libintl.8.dylib from Homebrew to the app bundle."
           
-          # Use install_name_tool to patch the executable, forcing it to look inside its own bundle
-          # The user's local error showed `@rpath/libintl.8.dylib`, so we will try that first.
-          # If this fails, the diagnostic output from `otool` above will tell us what to use instead.
-          install_name_tool -change @rpath/libintl.8.dylib @executable_path/../_internal/libintl.8.dylib "$EXEC_PATH"
-          echo "Attempted to patch the executable to use the bundled dylib."
+          # Use install_name_tool to patch the PYTHON dylib, telling it where to find the gettext dylib.
+          # We tell it to look in the same directory as itself.
+          install_name_tool -change @rpath/libintl.8.dylib @loader_path/libintl.8.dylib "$PYTHON_DYLIB_PATH"
+          echo "Attempted to patch libpython3.9.dylib."
           
           # 5. Verify the fix
-          echo "--- Verifying the patch (linked libraries after patching): ---"
-          otool -L "$EXEC_PATH"
-          # The next line is just for a quick check in the log, we add `|| true` to prevent it from failing the step
-          echo "--- Grep for libintl (for quick check, will not fail build): ---"
-          otool -L "$EXEC_PATH" | grep 'libintl' || true
+          echo "--- Verifying the patch (linked libraries for libpython3.9.dylib after patching): ---"
+          otool -L "$PYTHON_DYLIB_PATH"
           
           # 6. Finalize permissions
-          chmod +x "$EXEC_PATH"
+          chmod +x "dist/backend_executable/backend_executable"
 
       - name: Inject Secrets into Electron App
         shell: bash
@@ -127,34 +122,29 @@ jobs:
           echo "--- Starting manual dylib fix ---"
           
           # Define paths for clarity
-          EXEC_PATH="dist/backend_executable/backend_executable"
-          
-          # --- DIAGNOSTIC: Show original linked libraries ---
-          echo "--- Original linked libraries before patching: ---"
-          otool -L "$EXEC_PATH"
-          
-          GETTEXT_DYLIB_PATH=$(brew --prefix gettext)/lib/libintl.8.dylib
           TARGET_BUNDLE_DIR="dist/backend_executable/_internal"
+          PYTHON_DYLIB_PATH="$TARGET_BUNDLE_DIR/libpython3.9.dylib"
+          GETTEXT_DYLIB_PATH=$(brew --prefix gettext)/lib/libintl.8.dylib
+          
+          # --- DIAGNOSTIC: Show original linked libraries for the Python dylib ---
+          echo "--- Original linked libraries for libpython3.9.dylib before patching: ---"
+          otool -L "$PYTHON_DYLIB_PATH"
           
           # Copy the dylib directly into the app's bundle
           cp "$GETTEXT_DYLIB_PATH" "$TARGET_BUNDLE_DIR/"
           echo "Copied libintl.8.dylib from Homebrew to the app bundle."
           
-          # Use install_name_tool to patch the executable, forcing it to look inside its own bundle
-          # The user's local error showed `@rpath/libintl.8.dylib`, so we will try that first.
-          # If this fails, the diagnostic output from `otool` above will tell us what to use instead.
-          install_name_tool -change @rpath/libintl.8.dylib @executable_path/../_internal/libintl.8.dylib "$EXEC_PATH"
-          echo "Attempted to patch the executable to use the bundled dylib."
+          # Use install_name_tool to patch the PYTHON dylib, telling it where to find the gettext dylib.
+          # We tell it to look in the same directory as itself.
+          install_name_tool -change @rpath/libintl.8.dylib @loader_path/libintl.8.dylib "$PYTHON_DYLIB_PATH"
+          echo "Attempted to patch libpython3.9.dylib."
           
           # 5. Verify the fix
-          echo "--- Verifying the patch (linked libraries after patching): ---"
-          otool -L "$EXEC_PATH"
-          # The next line is just for a quick check in the log, we add `|| true` to prevent it from failing the step
-          echo "--- Grep for libintl (for quick check, will not fail build): ---"
-          otool -L "$EXEC_PATH" | grep 'libintl' || true
+          echo "--- Verifying the patch (linked libraries for libpython3.9.dylib after patching): ---"
+          otool -L "$PYTHON_DYLIB_PATH"
           
           # 6. Finalize permissions
-          chmod +x "$EXEC_PATH"
+          chmod +x "dist/backend_executable/backend_executable"
 
       - name: Inject Secrets into Electron App (x64)
         shell: bash
