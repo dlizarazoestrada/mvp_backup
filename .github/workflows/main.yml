@@ -22,11 +22,17 @@ jobs:
       - name: Build and Fix Backend Executable
         shell: bash
         run: |
-          # 1. Install dependencies
-          brew install gettext
+          # 1. Install dependencies based on target architecture
+          if [[ "${{ matrix.arch }}" == "arm64" ]]; then
+            echo "--- Installing arm64 dependencies ---"
+            arch -arm64 brew install gettext
+          else
+            echo "--- Installing x64 dependencies ---"
+            brew install gettext
+          fi
           pip install -r backend/requirements.txt
           
-          # 2. Set linker flags as a fallback for the build
+          # 2. Set linker flags (these are for PyInstaller's build-time)
           export LDFLAGS="-L$(brew --prefix gettext)/lib"
           export CPPFLAGS="-I$(brew --prefix gettext)/include"
           
@@ -34,13 +40,20 @@ jobs:
           pyinstaller backend_executable.spec --noconfirm
           
           # 4. --- Post-build manual fix for libintl.8.dylib ---
-          echo "--- Starting manual dylib fix ---"
+          echo "--- Starting manual dylib fix for ${{ matrix.arch }} ---"
           
           # Define paths for clarity
           TARGET_BUNDLE_DIR="dist/backend_executable/_internal"
           PYTHON_DYLIB_PATH="$TARGET_BUNDLE_DIR/libpython3.9.dylib"
-          GETTEXT_DYLIB_PATH=$(brew --prefix gettext)/lib/libintl.8.dylib
           
+          # Get the correct dylib path for the target architecture
+          if [[ "${{ matrix.arch }}" == "arm64" ]]; then
+            GETTEXT_DYLIB_PATH=$(arch -arm64 brew --prefix gettext)/lib/libintl.8.dylib
+          else
+            GETTEXT_DYLIB_PATH=$(brew --prefix gettext)/lib/libintl.8.dylib
+          fi
+          echo "Using dylib from: $GETTEXT_DYLIB_PATH"
+
           # --- DIAGNOSTIC: Show original linked libraries for the Python dylib ---
           echo "--- Original linked libraries for libpython3.9.dylib before patching: ---"
           otool -L "$PYTHON_DYLIB_PATH"
@@ -50,7 +63,6 @@ jobs:
           echo "Copied libintl.8.dylib from Homebrew to the app bundle."
           
           # Use install_name_tool to patch the PYTHON dylib, telling it where to find the gettext dylib.
-          # We tell it to look in the same directory as itself.
           install_name_tool -change @rpath/libintl.8.dylib @loader_path/libintl.8.dylib "$PYTHON_DYLIB_PATH"
           echo "Attempted to patch libpython3.9.dylib."
           
@@ -107,11 +119,17 @@ jobs:
       - name: Build and Fix Backend Executable (x64)
         shell: bash
         run: |
-          # 1. Install dependencies
-          brew install gettext
+          # 1. Install dependencies based on target architecture
+          if [[ "${{ matrix.arch }}" == "arm64" ]]; then
+            echo "--- Installing arm64 dependencies ---"
+            arch -arm64 brew install gettext
+          else
+            echo "--- Installing x64 dependencies ---"
+            brew install gettext
+          fi
           pip install -r backend/requirements.txt
           
-          # 2. Set linker flags as a fallback for the build
+          # 2. Set linker flags (these are for PyInstaller's build-time)
           export LDFLAGS="-L$(brew --prefix gettext)/lib"
           export CPPFLAGS="-I$(brew --prefix gettext)/include"
           
@@ -119,12 +137,19 @@ jobs:
           pyinstaller backend_executable.spec --noconfirm
           
           # 4. --- Post-build manual fix for libintl.8.dylib ---
-          echo "--- Starting manual dylib fix ---"
+          echo "--- Starting manual dylib fix for ${{ matrix.arch }} ---"
           
           # Define paths for clarity
           TARGET_BUNDLE_DIR="dist/backend_executable/_internal"
           PYTHON_DYLIB_PATH="$TARGET_BUNDLE_DIR/libpython3.9.dylib"
-          GETTEXT_DYLIB_PATH=$(brew --prefix gettext)/lib/libintl.8.dylib
+          
+          # Get the correct dylib path for the target architecture
+          if [[ "${{ matrix.arch }}" == "arm64" ]]; then
+            GETTEXT_DYLIB_PATH=$(arch -arm64 brew --prefix gettext)/lib/libintl.8.dylib
+          else
+            GETTEXT_DYLIB_PATH=$(brew --prefix gettext)/lib/libintl.8.dylib
+          fi
+          echo "Using dylib from: $GETTEXT_DYLIB_PATH"
           
           # --- DIAGNOSTIC: Show original linked libraries for the Python dylib ---
           echo "--- Original linked libraries for libpython3.9.dylib before patching: ---"
@@ -135,7 +160,6 @@ jobs:
           echo "Copied libintl.8.dylib from Homebrew to the app bundle."
           
           # Use install_name_tool to patch the PYTHON dylib, telling it where to find the gettext dylib.
-          # We tell it to look in the same directory as itself.
           install_name_tool -change @rpath/libintl.8.dylib @loader_path/libintl.8.dylib "$PYTHON_DYLIB_PATH"
           echo "Attempted to patch libpython3.9.dylib."
           
