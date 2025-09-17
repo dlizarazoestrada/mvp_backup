@@ -9,6 +9,7 @@ from PyInstaller.utils.hooks import collect_submodules
 # Also including all other dependencies from requirements.txt to be safe.
 hidden_imports = [
     'eventlet',
+    'greenlet',
     'dns',
     'flask',
     'flask_cors',
