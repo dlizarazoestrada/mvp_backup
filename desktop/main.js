@@ -135,8 +135,20 @@ async function startBackend() {
     console.log('Backend process exited with code:', code, 'signal:', signal);
   });
 
-  await waitOn({ resources: [`http://127.0.0.1:${port}`], timeout: 30000 });
-  return port;
+  const waitOnUrl = `http://127.0.0.1:${port}`;
+  console.log(`Waiting for backend to be ready at ${waitOnUrl}`);
+
+  try {
+      await waitOn({
+          resources: [waitOnUrl],
+          timeout: 90000, // Wait for 90 seconds
+      });
+      console.log("Backend is ready.");
+      return backend;
+  } catch (err) {
+    console.error("Backend failed to start or timed out:", err);
+    throw new Error(`Backend failed to start or timed out. Error: ${err.message}`);
+  }
 }
 
 async function createWindow() {
