@@ -166,6 +166,9 @@ async function createWindow() {
   await win.loadFile(path.join(__dirname, 'splash.html'));
   win.show();
 
+  // Open the DevTools to see logs from the backend process
+  win.webContents.openDevTools();
+
   // Start the backend in the background and load the real URL when ready
   startBackend().then(port => {
     console.log('Backend started successfully on port:', port);
