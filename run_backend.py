@@ -3,6 +3,11 @@ import os
 import sys
 import runpy
 
+# Monkey patch for socketio server BEFORE runpy is used.
+# This is crucial for the packaged executable to work correctly.
+import eventlet
+eventlet.monkey_patch()
+
 # This script is the new entry point for the PyInstaller-built executable.
 # Its purpose is to set up the Python path correctly so that all absolute imports
 # within the 'backend' package work as expected.
