@@ -5,10 +5,6 @@ This script will launch the Flask server which includes the WebSocket handling.
 import os
 import sys
 
-# Monkey patch for socketio server
-import eventlet
-eventlet.monkey_patch()
-
 from .scoring_server import app, socketio
 from .log_config import logger
 

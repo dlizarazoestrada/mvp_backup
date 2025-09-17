@@ -3,10 +3,6 @@ This file sets up the Flask server.
 It uses a time-window aggregation approach for accurate scoring.
 This module is designed to be importable and started from a master script.
 """
-import eventlet
-# Crucial for 'eventlet' to work. It patches standard Python libraries to be non-blocking.
-# This must be done BEFORE any other modules (like socketio or flask) are imported.
-eventlet.monkey_patch()
 
 from flask import Flask, request, send_from_directory
 from flask_socketio import SocketIO
