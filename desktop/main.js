@@ -144,7 +144,7 @@ async function startBackend() {
           timeout: 90000, // Wait for 90 seconds
       });
       console.log("Backend is ready.");
-      return backend;
+      return port;
   } catch (err) {
     console.error("Backend failed to start or timed out:", err);
     throw new Error(`Backend failed to start or timed out. Error: ${err.message}`);
