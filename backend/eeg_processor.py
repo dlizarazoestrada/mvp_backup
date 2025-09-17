@@ -5,13 +5,14 @@ This module is responsible for processing band power data packets from the
 Cortex API's 'pow' stream.
 """
 from backend.log_config import logger
+from typing import Union
 
 # --- Constants based on EPOC X specifications ---
 # The channel names must match the order in which the device sends them.
 CHANNELS = ["AF3", "F7", "F3", "FC5", "T7", "P7", "O1", "O2", "P8", "T8", "FC6", "F4", "F8", "AF4"]
 BANDS = ["theta", "alpha", "betaL", "betaH", "gamma"]
 
-def process_band_power_data(data: dict) -> float | None:
+def process_band_power_data(data: dict) -> Union[float, None]:
     """
     Processes a 'pow' data packet to calculate the Alpha/Beta power ratio.
 

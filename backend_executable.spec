@@ -1,5 +1,5 @@
 # backend_executable.spec
-# -*- mode: python ; coding: utf-8 -*-
+# -- mode: python ; coding: utf-8 --
 
 from PyInstaller.utils.hooks import collect_submodules
 
@@ -21,6 +21,7 @@ hidden_imports = [
     'dotenv',
     'websocket',
     'websockets',
+    'logging.config',
 ]
 hidden_imports = [mod for lib in hidden_imports for mod in collect_submodules(lib)]
 
@@ -46,7 +47,7 @@ exe = EXE(
     name='backend_executable',
     debug=False,
     bootloader_ignore_signals=False,
-    strip=False,
+    strip=True,
     upx=True,
     console=True,
     disable_windowed_traceback=False,
@@ -60,7 +61,7 @@ coll = COLLECT(
     a.binaries,
     a.zipfiles,
     a.datas,
-    strip=False,
+    strip=True,
     upx=True,
     upx_exclude=[],
     name='backend_executable',

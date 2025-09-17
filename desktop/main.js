@@ -94,6 +94,7 @@ async function startBackend() {
   // Since we are using a self-contained PyInstaller executable, we no longer need
   // to set up a complex Python environment with DYLD_LIBRARY_PATH, etc.
   // We only need to provide our temporary config path via PYTHONPATH.
+   const userDataPath = app.getPath('userData');
    const childEnv = {
      ...process.env,
      OPEN_BROWSER: '0',
@@ -104,6 +105,8 @@ async function startBackend() {
      LOG_VERBOSE: secrets.LOG_VERBOSE || '2',
      // By setting PYTHONPATH, the bundled Python script can find our generated config.
      PYTHONPATH: tmpConfDir,
+     // Provide a writable path for logs in packaged apps.
+     LOG_PATH: userDataPath,
    };
 
   console.log('Spawning backend process with CWD:', runCwd);

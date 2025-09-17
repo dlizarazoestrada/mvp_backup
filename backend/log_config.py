@@ -11,13 +11,15 @@ except ValueError:
     verbose_level = 1
 
 LOG_TO_FILE = verbose_level >= 2
-LOG_DIR = 'logs'
-LOG_FILE = os.path.join(LOG_DIR, 'session.log')
 
-if LOG_TO_FILE:
-    # Ensure the logs directory exists
-    os.makedirs(LOG_DIR, exist_ok=True)
-    print(f"--- DETAILED LOGGING ENABLED. LOGS WILL BE SAVED TO: {os.path.abspath(LOG_FILE)} ---")
+# --- Determine Log Directory ---
+# In a packaged app, the current directory is inside the read-only app bundle.
+# We get a writable path from an environment variable set by the Electron wrapper.
+# Fallback to a local 'logs' directory for development.
+LOG_DIR = os.path.join(os.environ.get('LOG_PATH', '.'), 'logs')
+
+# Ensure the log directory exists
+os.makedirs(LOG_DIR, exist_ok=True)
 
 
 # --- Custom Verbosity Filter ---
@@ -92,7 +94,7 @@ if LOG_TO_FILE:
     log_config['handlers']['file_handler'] = {
         "class": "logging.FileHandler",
         "formatter": "file_formatter",
-        "filename": LOG_FILE,
+        "filename": os.path.join(LOG_DIR, 'session.log'), # Use the determined LOG_DIR
         "mode": "w",  # Overwrite the log file on each run
         "encoding": "utf-8",
     }
